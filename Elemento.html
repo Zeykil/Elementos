@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Grafo de Elementos</title>
+    <!-- Biblioteca D3.js para o grafo de força-dirigida -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Google Fonts para um visual limpo e moderno -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="stylesheet" href="../Css/Elementos.css">
+<body>
+    <!-- Canvas para o fundo animado de campo estelar -->
+    <canvas id="starfield"></canvas>
+
+    <!-- Container SVG onde o grafo D3 será renderizado -->
+    <svg id="graph"></svg>
+
+    <!-- Controles da UI -->
+    <div class="controls">
+        <button id="add-element-button">Adicionar Elemento</button>
+        <button id="edit-button" disabled>Editar Selecionado</button>
+        <button id="delete-button" disabled>Excluir Selecionado</button>
+        <button id="reset-button">Resetar Posições</button>
+        <label for="import-json" class="file-label">Importar JSON</label>
+        <input type="file" id="import-json" accept=".json" style="display: none;">
+        <button id="export-json-button">Exportar JSON</button>
+    </div>
+    
+    <!-- Legenda para os tipos de conexão -->
+    <div class="legend">
+        <div class="legend-item" data-type="advantage">
+            <div class="legend-line advantage-line"></div>
+            <span>Vantagem</span>
+        </div>
+        <div class="legend-item" data-type="disadvantage">
+            <div class="legend-line disadvantage-line"></div>
+            <span>Desvantagem</span>
+        </div>
+    </div>
+
+    <!-- Painel Lateral de Edição -->
+    <div id="editor-panel">
+        <div class="editor-header">
+            <h3 id="panel-title">Adicionar Novo Elemento</h3>
+            <button id="close-panel-button"><i class="fas fa-times"></i></button>
+        </div>
+        <form class="editor-form" id="element-form">
+            <input type="hidden" id="element-id-input">
+            <div class="form-group">
+                <label for="element-name-input"><i class="fas fa-font"></i> Nome do Elemento:</label>
+                <input type="text" id="element-name-input" placeholder="Ex: Gelo">
+            </div>
+            <div class="form-group">
+                <label for="element-emoji-input"><i class="fas fa-smile"></i> Emoji:</label>
+                <input type="text" id="element-emoji-input" placeholder="Ex: ❄️">
+            </div>
+            <!-- Novo campo para selecionar a cor do elemento -->
+            <div class="form-group">
+                <label for="element-color-input"><i class="fas fa-palette"></i> Cor do Elemento:</label>
+                <input type="color" id="element-color-input" value="#FFFFFF">
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-plus-circle"></i> Vantagem sobre:</label>
+                <div id="advantage-checkboxes" class="checkbox-container"></div>
+            </div>
+            
+            <div class="form-group">
+                <label><i class="fas fa-minus-circle"></i> Desvantagem contra:</label>
+                <div id="disadvantage-checkboxes" class="checkbox-container"></div>
+            </div>
+            
+            <div class="editor-actions">
+                <button type="button" id="save-button">Salvar</button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p id="delete-modal-text">Tem certeza que deseja apagar o elemento?</p>
+            <div class="button-group">
+                <button id="confirm-delete-button" class="confirm-button">Sim</button>
+                <button id="cancel-delete-button">Não</button>
+            </div>
+        </div>
+    </div>
+    <script src="../Js/Elemento.js"></script>
+</body>
+</html>

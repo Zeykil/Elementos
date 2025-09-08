@@ -1,0 +1,493 @@
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0a1a;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Canvas para o fundo de campo estelar */
+        #starfield {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        /* Container principal SVG para o grafo */
+        svg {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        svg:active {
+            cursor: grabbing;
+        }
+
+        /* Estilização para os nós do grafo (elementos) */
+        .node circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+            transition: r 0.3s ease, transform 0.3s ease, filter 0.3s ease, opacity 0.5s ease;
+        }
+        
+        /* Efeito de pulsação no clique */
+        .node.selected circle {
+            transform: scale(1.2);
+            animation: pulse 1s infinite alternate;
+        }
+        
+        /* Efeito de aumento no hover */
+        .node:hover circle {
+            r: 30; /* Aumenta o raio do círculo */
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); /* Adiciona um brilho */
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1.2); }
+            to { transform: scale(1.25); }
+        }
+
+        .node text {
+            fill: #f0f0f0;
+            font-size: 14px;
+            text-anchor: middle;
+            pointer-events: none; /* O texto não deve bloquear eventos de mouse no círculo */
+            text-shadow: 0 0 5px #000;
+            transition: opacity 0.5s ease;
+        }
+
+        .node .emoji {
+            font-size: 24px;
+        }
+
+        /* Animação de explosão para remoção de nós */
+        .node.exploding {
+            animation: explode-node 1.5s forwards;
+        }
+
+        @keyframes explode-node {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(2.5);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* Estilização para as conexões entre os nós */
+        .link {
+            stroke-opacity: 0.4;
+            transition: stroke 0.5s ease, stroke-opacity 0.5s ease, filter 0.5s ease, stroke-width 0.5s ease;
+        }
+
+        /* Animação para o efeito de "fluxo de energia" nas linhas */
+        .link.pulsing {
+            animation: linkPulse 1s infinite alternate;
+        }
+
+        @keyframes linkPulse {
+            from { stroke-width: 2.5px; }
+            to { stroke-width: 3px; }
+        }
+        
+        /* Controles da UI */
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Estilização geral dos botões */
+        .controls button, .controls label {
+            background-color: #4a4a8a;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.1s ease, opacity 0.3s ease;
+            text-align: center;
+        }
+
+        .controls button:hover, .controls label:hover {
+            background-color: #6a6ad2;
+        }
+
+        .controls button:active, .controls label:active {
+            transform: scale(0.95);
+        }
+        
+        .controls button:disabled {
+            background-color: #2a2a4a;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* Estilização da Legenda */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px; /* Mudança para a direita para evitar sobreposição com o novo painel */
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .legend-item.inactive {
+            opacity: 0.5;
+        }
+
+        .legend-line {
+            width: 30px;
+            height: 2px;
+            border-radius: 2px;
+        }
+        
+        .advantage-line {
+            background-color: #00ff7f;
+        }
+
+        .disadvantage-line {
+            background-color: #ff4500;
+        }
+        
+        /* Painel Lateral de Edição */
+        #editor-panel {
+            position: fixed;
+            top: 0;
+            left: -450px; /* Mover para a esquerda e esconder */
+            width: 400px;
+            height: 100%;
+            background-color: rgba(15, 15, 30, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 2px solid #3a3a6a; /* Cor da borda mais elegante */
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8); /* Sombra mais forte */
+            padding: 40px 30px;
+            box-sizing: border-box;
+            transition: left 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        #editor-panel.open {
+            left: 0; /* Mover para o centro da tela */
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #4a4a8a;
+            padding-bottom: 20px;
+        }
+        
+        .editor-header h3 {
+            margin: 0;
+            color: #d8c4ff;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .editor-header button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        
+        .editor-header button:hover {
+            color: #ff6b6b;
+            transform: rotate(90deg);
+        }
+        
+        .editor-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex-grow: 1;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #a0a0d0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Estilização para inputs de texto */
+        .form-group input[type="text"] {
+            background-color: #1a1a32;
+            border: 1px solid #3a3a6a;
+            color: #f0f0f0;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: #6a6ad2;
+            box-shadow: 0 0 10px rgba(106, 106, 210, 0.5);
+        }
+        
+        /* Estilização para o input de cor */
+        .form-group input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-color: transparent;
+            border: none;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 50%; /* Faz com que o seletor seja um círculo */
+            overflow: hidden;
+            border: 2px solid #3a3a6a;
+            transition: border-color 0.3s ease, transform 0.1s ease;
+        }
+        
+        .form-group input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .form-group input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .form-group input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+        
+        .form-group input[type="color"]:hover {
+            border-color: #6a6ad2;
+            transform: scale(1.05);
+        }
+
+
+        /* Estilização dos contêineres de checkbox */
+        .checkbox-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #1a1a32;
+            border: 2px solid #3a3a6a;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+        }
+        
+        .checkbox-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .checkbox-container::-webkit-scrollbar-thumb {
+            background-color: #4a4a8a;
+            border-radius: 10px;
+        }
+
+        .checkbox-container::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #e0e0e0;
+            transition: color 0.2s ease;
+        }
+
+        .checkbox-item:hover {
+            color: #d8c4ff;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+            width: 1.5em;
+            height: 1.5em;
+            border: 2px solid #5a5ac2;
+            border-radius: 6px;
+            background-color: #2a2a4a;
+            transform: translateY(0);
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .checkbox-item input[type="checkbox"]::before {
+            content: "\f00c"; /* Ícone de checkmark do Font Awesome */
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            color: #1a1a32;
+            font-size: 1em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked {
+            background-color: #6a6ad2;
+            border-color: #6a6ad2;
+        }
+
+        .checkbox-item input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        .editor-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            padding-top: 25px;
+            border-top: 2px solid #3a3a6a;
+        }
+        
+        .editor-actions button {
+            background-color: #6a6ad2;
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .editor-actions button:hover {
+            background-color: #8a8ae7;
+            transform: translateY(-2px);
+        }
+
+        .editor-actions button:active {
+            transform: translateY(0);
+        }
+        
+        /* Modal de Confirmação de Exclusão */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1a1a32;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.8);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            border: 2px solid #3a3a6a;
+        }
+        
+        .modal-content h3 {
+            margin-top: 0;
+            color: #ff6b6b;
+            font-size: 22px;
+        }
+        
+        .modal-content p {
+            color: #b0b0b0;
+            font-size: 16px;
+        }
+        
+        .modal-content .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .modal-content button {
+            background-color: #4a4a8a;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        .modal-content button.confirm-button {
+            background-color: #d11d1d;
+        }
+
+        .modal-content button:hover {
+            background-color: #6a6ad2;
+        }
+
+        .modal-content button.confirm-button:hover {
+            background-color: #ff4500;
+        }
